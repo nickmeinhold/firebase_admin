@@ -23,6 +23,7 @@ dependencies:
   snapshot: ^0.2.5
   _discoveryapis_commons: ^1.0.4
   googleapis: ^9.2.0
+  googleapis_auth: any
 
 dev_dependencies:
   test: ^1.17.8

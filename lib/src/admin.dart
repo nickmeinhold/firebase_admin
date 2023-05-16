@@ -49,8 +49,9 @@ class FirebaseAdmin {
   ///   * [App]
   ///   * [cert]
   ///   * [certFromPath]
-  App initializeApp([AppOptions? options, String name = defaultAppName]) {
-    options ??= _loadOptionsFromEnvVar(Credentials.applicationDefault());
+  Future<App> initializeApp(
+      [AppOptions? options, String name = defaultAppName]) async {
+    options ??= _loadOptionsFromEnvVar(await Credentials.applicationDefault());
     if (name.isEmpty) {
       throw FirebaseAppError.invalidAppName(
         'Invalid Firebase app name "$name" provided. App name must be a non-empty string.',

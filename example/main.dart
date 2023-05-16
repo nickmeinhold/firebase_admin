@@ -7,7 +7,7 @@ void main() async {
   // * a configuration file, specific for this library, stored in the user's home directory
   // * gcloud's application default credentials
   // * credentials from the firebase tools
-  var credential = Credentials.applicationDefault();
+  var credential = await Credentials.applicationDefault();
 
   // when no credentials found, login using openid
   // the credentials are stored on disk for later use
@@ -17,7 +17,7 @@ void main() async {
 
   var projectId = 'some-project';
   // create an app
-  var app = FirebaseAdmin.instance.initializeApp(AppOptions(
+  var app = await FirebaseAdmin.instance.initializeApp(AppOptions(
       credential: credential,
       projectId: projectId,
       storageBucket: '$projectId.appspot.com'));

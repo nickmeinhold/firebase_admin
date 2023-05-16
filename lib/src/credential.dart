@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:googleapis_auth/auth_io.dart';
+import 'package:http/http.dart' as http;
 import 'package:firebase_admin/src/utils/env.dart';
 import 'package:openid_client/openid_client_io.dart';
 
@@ -73,8 +75,8 @@ class Credentials {
   ///   credentials obtained with [Credentials.login]
   ///   * gcloud's application default credentials
   ///   * credentials from the firebase tools
-  static Credential? applicationDefault() =>
-      _globalAppDefaultCred ??= _getApplicationDefault();
+  static Future<Credential?> applicationDefault() async =>
+      _globalAppDefaultCred ??= await _getApplicationDefault();
 
   /// Returns [Credential] created from the provided service account that grants
   /// admin access to Firebase services.
@@ -126,7 +128,7 @@ class Credentials {
     return null;
   }
 
-  static Credential? _getApplicationDefault() {
+  static Future<Credential?> _getApplicationDefault() async {
     var f = File('service-account.json');
     if (f.existsSync()) {
       return _credentialFromFile(f.path);
@@ -151,8 +153,16 @@ class Credentials {
       }
     }
 
-    // TODO Credential on compute engine
-    return null;
+    // Try to get a credential from the metadata server on compute engine
+    var client = http.Client();
+    AccessCredentials credentials =
+        await obtainAccessCredentialsViaMetadataServer(client);
+    client.close();
+
+    return MetadataServerAccessToken(
+        credentials.accessToken.data, credentials.accessToken.expiry);
+
+    // return null;
   }
 
   static Credential _credentialFromFile(String filePath) {
@@ -197,6 +207,18 @@ class Credentials {
           'Failed to parse contents of the credentials file as an object: $error');
     }
   }
+}
+
+class MetadataServerAccessToken implements Credential, AccessToken {
+  MetadataServerAccessToken(this.accessToken, this.expirationTime);
+
+  @override
+  final String accessToken;
+  @override
+  final DateTime expirationTime;
+
+  @override
+  Future<AccessToken> getAccessToken() => Future.value(this);
 }
 
 /// Interface which provides Google OAuth2 access tokens used to authenticate
